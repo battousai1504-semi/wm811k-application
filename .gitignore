@@ -1,0 +1,32 @@
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files
+data/raw/
+*.pkl
+*.pickle
+*.h5
+*.npy
+*.npz
+*.csv
+
+# Output / processed data
+data/processed/
+outputs/
+runs/
+models/
+checkpoints/
+
+# OS / IDE
+.DS_Store
+.vscode/
