@@ -191,7 +191,7 @@ def main():
     print("Số wafer có die lỗi:", len(defect_df))
 
     # Chọn thử một wafer
-    sample = defect_df.iloc[0]
+    sample = defect_df.iloc[1000]
 
     wafer = sample["waferMap"]
     label = sample["failureType_str"]
