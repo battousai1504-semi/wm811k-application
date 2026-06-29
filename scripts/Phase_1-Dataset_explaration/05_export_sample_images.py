@@ -1,49 +1,41 @@
-import os
-import pandas as pd
-import numpy as np
+import argparse
+from pathlib import Path
+import sys
+
 import cv2
+import pandas as pd
 
-DATA_PATH = "data/raw/LSWMD.pkl"
-OUTPUT_DIR = "outputs/wm811k_samples"
 
-df = pd.read_pickle(DATA_PATH)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-def extract_label(x):
-    arr = np.asarray(x)
+from wm811k.labels import LABEL_COLUMN, add_label_column, filter_labeled, stratified_head
+from wm811k.masks import wafer_to_grayscale
+from wm811k.paths import OUTPUT_DIR, RAW_DATA_PATH, ensure_dir
 
-    if arr.size == 0:
-        return "unlabeled"
 
-    arr = arr.ravel()
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max-per-class", type=int, default=100)
+    parser.add_argument("--output", type=Path, default=OUTPUT_DIR / "wm811k_samples")
+    return parser.parse_args()
 
-    if len(arr) == 0:
-        return "unlabeled"
 
-    return str(arr[0])
+def main() -> None:
+    args = parse_args()
+    dataframe = pd.read_pickle(RAW_DATA_PATH)
+    dataframe = filter_labeled(add_label_column(dataframe))
+    sample_dataframe = stratified_head(dataframe, LABEL_COLUMN, args.max_per_class)
 
-df["failureType_str"] = df["failureType"].apply(extract_label)
+    for wafer_id, row in sample_dataframe.iterrows():
+        label = row[LABEL_COLUMN]
+        save_dir = ensure_dir(args.output / label)
+        image = wafer_to_grayscale(row["waferMap"])
+        cv2.imwrite(str(save_dir / f"{label}_{wafer_id}.png"), image)
 
-# Bỏ mẫu chưa có nhãn
-df_labeled = df[df["failureType_str"] != "unlabeled"].copy()
+    print(f"Exported sample images to: {args.output}")
 
-# Mỗi class lấy tối đa 100 ảnh để test trước
-MAX_PER_CLASS = 100
 
-for label, group in df_labeled.groupby("failureType_str"):
-    save_dir = os.path.join(OUTPUT_DIR, label)
-    os.makedirs(save_dir, exist_ok=True)
+if __name__ == "__main__":
+    main()
 
-    sample_group = group.head(MAX_PER_CLASS)
-
-    for idx, row in sample_group.iterrows():
-        wafer = row["waferMap"]
-
-        # Chuyển 0,1,2 thành 0,127,255 để lưu ảnh grayscale
-        img = (wafer.astype("uint8") * 127)
-
-        filename = f"{label}_{idx}.png"
-        path = os.path.join(save_dir, filename)
-
-        cv2.imwrite(path, img)
-
-print("Đã export xong ảnh mẫu.")

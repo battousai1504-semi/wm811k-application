@@ -1,25 +1,35 @@
+import argparse
+from pathlib import Path
+import sys
+
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
 
-DATA_PATH = "data/raw/LSWMD.pkl"
 
-df = pd.read_pickle(DATA_PATH)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-# Lấy wafer đầu tiên
-index = 1504
-wafer = df.loc[index, "waferMap"]
+from wm811k.paths import RAW_DATA_PATH
+from wm811k.plots import show_wafer
 
-print("Kiểu dữ liệu wafer:", type(wafer))
-print("Kích thước wafer:", wafer.shape)
-print("Giá trị có trong wafer:", set(wafer.flatten()))
 
-# 0: không có die
-# 1: die bình thường
-# 2: die lỗi
-cmap = ListedColormap(["black", "lightgray", "red"])
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--index", type=int, default=1504)
+    return parser.parse_args()
 
-plt.imshow(wafer, cmap=cmap, vmin=0, vmax=2)
-plt.title(f"Wafer index {index}")
-plt.colorbar()
-plt.show()
+
+def main() -> None:
+    args = parse_args()
+    dataframe = pd.read_pickle(RAW_DATA_PATH)
+    wafer = dataframe.loc[args.index, "waferMap"]
+
+    print("Wafer type:", type(wafer))
+    print("Wafer shape:", wafer.shape)
+    print("Wafer values:", sorted(set(wafer.flatten())))
+
+    show_wafer(wafer, title=f"Wafer index {args.index}")
+
+
+if __name__ == "__main__":
+    main()
+

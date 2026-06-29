@@ -1,23 +1,45 @@
+import argparse
+from pathlib import Path
+import sys
+
 import pandas as pd
 
-FEATURE_PATH = "outputs/phase2/features/wafer_features.csv"
 
-df = pd.read_csv(FEATURE_PATH)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-print("Kích thước bảng feature:")
-print(df.shape)
+from wm811k.paths import FEATURE_DATA_PATH
 
-print("\n5 dòng đầu:")
-print(df.head())
 
-print("\nThống kê cơ bản:")
-print(df.describe())
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--csv", type=Path, default=FEATURE_DATA_PATH)
+    return parser.parse_args()
 
-print("\nSố lượng label:")
-print(df["label"].value_counts())
 
-print("\nDefect ratio trung bình theo label:")
-print(df.groupby("label")["defect_ratio"].mean().sort_values(ascending=False))
+def main() -> None:
+    args = parse_args()
+    dataframe = pd.read_csv(args.csv)
 
-print("\nSố component trung bình theo label:")
-print(df.groupby("label")["num_components"].mean().sort_values(ascending=False))
+    print("Feature table shape:")
+    print(dataframe.shape)
+
+    print("\nFirst 5 rows:")
+    print(dataframe.head())
+
+    print("\nBasic statistics:")
+    print(dataframe.describe())
+
+    print("\nLabel counts:")
+    print(dataframe["label"].value_counts())
+
+    print("\nMean defect ratio by label:")
+    print(dataframe.groupby("label")["defect_ratio"].mean().sort_values(ascending=False))
+
+    print("\nMean component count by label:")
+    print(dataframe.groupby("label")["num_components"].mean().sort_values(ascending=False))
+
+
+if __name__ == "__main__":
+    main()
+

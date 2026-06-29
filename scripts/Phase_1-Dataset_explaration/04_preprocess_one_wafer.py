@@ -1,70 +1,59 @@
-import pandas as pd
-import numpy as np
+import argparse
+from pathlib import Path
+import sys
+
 import cv2
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
-DATA_PATH = "data/raw/LSWMD.pkl"
 
-df = pd.read_pickle(DATA_PATH)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-# Tìm một wafer có ít nhất một die lỗi
-defect_df = df[df["waferMap"].apply(lambda x: np.any(x == 2))]
+from wm811k.components import draw_components, get_connected_component_features
+from wm811k.masks import create_defect_mask
+from wm811k.paths import RAW_DATA_PATH
 
-print("Số wafer có die lỗi:", len(defect_df))
 
-wafer = defect_df.iloc[0]["waferMap"]
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--sample-position", type=int, default=0)
+    parser.add_argument("--min-area", type=int, default=3)
+    return parser.parse_args()
 
-# 1. Tạo defect mask
-defect_mask = (wafer == 2).astype("uint8") * 255
 
-# 2. Morphology opening để loại noise nhỏ
-kernel = np.ones((3, 3), np.uint8)
-opened = cv2.morphologyEx(defect_mask, cv2.MORPH_OPEN, kernel)
+def main() -> None:
+    args = parse_args()
+    dataframe = pd.read_pickle(RAW_DATA_PATH)
+    defect_dataframe = dataframe[dataframe["waferMap"].apply(lambda wafer: np.any(wafer == 2))]
 
-# 3. Connected components
-num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(
-    opened,
-    connectivity=8
-)
+    print("Wafers with defective dies:", len(defect_dataframe))
 
-print("Số component:", num_labels)
+    wafer = defect_dataframe.iloc[args.sample_position]["waferMap"]
+    mask = create_defect_mask(wafer)
+    components = get_connected_component_features(mask, min_area=args.min_area)
+    component_image = draw_components(mask, components)
 
-# 4. Vẽ bounding box
-result = cv2.cvtColor(opened, cv2.COLOR_GRAY2BGR)
+    print("Components:", len(components))
+    for component in components:
+        print(component)
 
-MIN_AREA = 3
+    fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+    axes[0].imshow(wafer, cmap="gray")
+    axes[0].set_title("Original waferMap")
+    axes[1].imshow(mask, cmap="gray")
+    axes[1].set_title("Defect mask")
+    axes[2].imshow(cv2.cvtColor(component_image, cv2.COLOR_BGR2RGB))
+    axes[2].set_title("Connected components")
 
-for i in range(1, num_labels):
-    area = stats[i, cv2.CC_STAT_AREA]
+    for axis in axes:
+        axis.axis("off")
 
-    if area < MIN_AREA:
-        continue
+    fig.tight_layout()
+    plt.show()
 
-    x = stats[i, cv2.CC_STAT_LEFT]
-    y = stats[i, cv2.CC_STAT_TOP]
-    w = stats[i, cv2.CC_STAT_WIDTH]
-    h = stats[i, cv2.CC_STAT_HEIGHT]
 
-    cv2.rectangle(result, (x, y), (x + w, y + h), (0, 255, 0), 1)
+if __name__ == "__main__":
+    main()
 
-    print(f"Component {i}: area={area}, bbox=({x}, {y}, {w}, {h})")
-
-# 5. Hiển thị
-plt.figure(figsize=(12, 4))
-
-plt.subplot(1, 3, 1)
-plt.imshow(wafer, cmap="gray")
-plt.title("Original waferMap")
-plt.axis("off")
-
-plt.subplot(1, 3, 2)
-plt.imshow(defect_mask, cmap="gray")
-plt.title("Defect mask")
-plt.axis("off")
-
-plt.subplot(1, 3, 3)
-plt.imshow(result)
-plt.title("Connected components")
-plt.axis("off")
-
-plt.show()

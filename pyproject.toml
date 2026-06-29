@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wm811k-application"
+version = "0.1.0"
+description = "WM-811K wafer defect detection utilities and baseline ML scripts"
+requires-python = ">=3.10"
+dependencies = [
+    "joblib",
+    "matplotlib",
+    "numpy",
+    "opencv-python",
+    "pandas",
+    "scikit-learn",
+    "tqdm",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

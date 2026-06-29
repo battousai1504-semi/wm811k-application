@@ -1,14 +1,29 @@
+from pathlib import Path
+import sys
+
 import pandas as pd
 
-DaTA_PATH = "data/raw/LSWMD.pkl"
-df = pd.read_pickle(DaTA_PATH)
 
-print("Số lượng wafer:", len(df))
-print("Các cột trong dataset:")
-print(df.columns)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-print("\n5 dòng đầu:")
-print(df.head())
+from wm811k.paths import RAW_DATA_PATH
 
-print("\nThông tin dataframe:")
-print(df.info())
+
+def main() -> None:
+    dataframe = pd.read_pickle(RAW_DATA_PATH)
+
+    print("Number of wafers:", len(dataframe))
+    print("\nDataset columns:")
+    print(dataframe.columns)
+
+    print("\nFirst 5 rows:")
+    print(dataframe.head())
+
+    print("\nDataFrame info:")
+    dataframe.info()
+
+
+if __name__ == "__main__":
+    main()
+

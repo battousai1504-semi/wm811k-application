@@ -4,6 +4,7 @@ import argparse
 import itertools
 import math
 from pathlib import Path
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,20 +18,11 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 
-DEFAULT_FEATURES = [
-    "total_die",
-    "defect_die",
-    "defect_ratio",
-    "num_components",
-    "largest_component_area",
-    "mean_component_area",
-    "normalized_distance_to_center",
-    "spread_x",
-    "spread_y",
-    "total_contour_area",
-    "total_perimeter",
-    "mean_circularity",
-]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
+
+from wm811k.features import DEFAULT_FEATURE_COLUMNS as DEFAULT_FEATURES
+from wm811k.paths import FEATURE_DATA_PATH, PHASE2_ANALYSIS_DIR
 
 LABEL_COLUMN = "label"
 
@@ -40,13 +32,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--csv",
         type=Path,
-        default=Path("outputs/phase2/features/wafer_features.csv"),
+        default=FEATURE_DATA_PATH,
         help="Path to wafer_features.csv",
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("outputs/phase2/feature_analysis"),
+        default=PHASE2_ANALYSIS_DIR,
         help="Output directory",
     )
     parser.add_argument(

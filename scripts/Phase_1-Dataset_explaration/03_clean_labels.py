@@ -1,30 +1,22 @@
+from pathlib import Path
+import sys
+
 import pandas as pd
-import numpy as np
 
-DATA_PATH = "data/raw/LSWMD.pkl"
 
-df = pd.read_pickle(DATA_PATH)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-def extract_label(x):
-    """
-    Chuyển label từ dạng array/list về string.
-    Ví dụ:
-    array(['Center']) -> 'Center'
-    array(['none'])   -> 'none'
-    []                -> 'unlabeled'
-    """
-    arr = np.asarray(x)
+from wm811k.labels import LABEL_COLUMN, add_label_column
+from wm811k.paths import RAW_DATA_PATH
 
-    if arr.size == 0:
-        return "unlabeled"
 
-    arr = arr.ravel()
+def main() -> None:
+    dataframe = pd.read_pickle(RAW_DATA_PATH)
+    dataframe = add_label_column(dataframe)
+    print(dataframe[LABEL_COLUMN].value_counts())
 
-    if len(arr) == 0:
-        return "unlabeled"
 
-    return str(arr[0])
+if __name__ == "__main__":
+    main()
 
-df["failureType_str"] = df["failureType"].apply(extract_label)
-
-print(df["failureType_str"].value_counts())
