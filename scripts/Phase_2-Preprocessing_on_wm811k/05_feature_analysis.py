@@ -62,8 +62,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--eval-per-class",
         type=int,
-        default=1000,
-        help="Maximum samples per class used for quantitative evaluation",
+        default=None,
+        help=(
+            "Maximum samples per class used for quantitative evaluation. "
+            "Omit this option to evaluate on every row in the feature CSV."
+        ),
     )
     return parser.parse_args()
 
@@ -100,9 +103,12 @@ def clean_data(df: pd.DataFrame, features: list[str]) -> pd.DataFrame:
 
 def stratified_sample(
     df: pd.DataFrame,
-    max_per_class: int,
+    max_per_class: int | None,
     random_state: int = 42,
 ) -> pd.DataFrame:
+    if max_per_class is None:
+        return df.copy()
+
     parts = []
     for _, group in df.groupby(LABEL_COLUMN, sort=False):
         n = min(len(group), max_per_class)
@@ -412,7 +418,7 @@ def main() -> None:
     corr_all.to_csv(args.output / "correlation_matrix_all.csv")
     save_correlation_heatmap(
         corr_all,
-        "Pearson correlation matrix — 12 handcrafted features",
+        "Pearson correlation matrix - 12 handcrafted features",
         args.output / "01_correlation_matrix_all.png",
     )
 
@@ -447,7 +453,7 @@ def main() -> None:
     corr_selected.to_csv(args.output / "correlation_matrix_selected.csv")
     save_correlation_heatmap(
         corr_selected,
-        "Pearson correlation matrix — selected nonredundant features",
+        "Pearson correlation matrix - selected nonredundant features",
         args.output / "06_correlation_matrix_selected.png",
     )
 
@@ -492,7 +498,7 @@ def main() -> None:
         "PC1",
         "PC2",
         (
-            "PCA projection — all 12 features "
+            "PCA projection - all 12 features "
             f"({pca_all.explained_variance_ratio_.sum():.1%} variance)"
         ),
         args.output / "08_pca_all_12_features.png",
@@ -511,7 +517,7 @@ def main() -> None:
         "PC1",
         "PC2",
         (
-            "PCA projection — selected features "
+            "PCA projection - selected features "
             f"({pca_selected.explained_variance_ratio_.sum():.1%} variance)"
         ),
         args.output / "09_pca_selected_features.png",
@@ -532,7 +538,7 @@ def main() -> None:
             plot_df[LABEL_COLUMN],
             "LD1",
             "LD2",
-            "LDA projection — selected features",
+            "LDA projection - selected features",
             args.output / "10_lda_selected_features.png",
         )
 
@@ -548,6 +554,8 @@ def main() -> None:
         "PHASE 2 FEATURE ANALYSIS SUMMARY",
         "=" * 42,
         f"Correlation threshold: |r| >= {args.threshold:.2f}",
+        f"Rows used for feature selection: {len(clean_df):,}",
+        f"Rows used for separability evaluation: {len(eval_df):,}",
         "",
         f"Original features ({len(DEFAULT_FEATURES)}):",
         ", ".join(DEFAULT_FEATURES),
@@ -562,10 +570,10 @@ def main() -> None:
             else "None"
         ),
         "",
-        "Separability metrics — all 12 features:",
+        "Separability metrics - all 12 features:",
         *[f"{key}: {value:.4f}" for key, value in metrics_all.items()],
         "",
-        "Separability metrics — selected features:",
+        "Separability metrics - selected features:",
         *[f"{key}: {value:.4f}" for key, value in metrics_selected.items()],
         "",
         "Interpretation guide:",

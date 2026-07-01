@@ -1,0 +1,29 @@
+CLASSICAL CV SVM RBF BASELINE SUMMARY
+============================================
+Feature set: selected_plus_texture
+Feature count: 278
+Samples used: 12,763
+Max per class: 2000
+Folds: 5
+SVM C: 10.0
+SVM gamma: scale
+
+Out-of-fold metrics:
+accuracy: 0.7689
+balanced_accuracy: 0.7631
+macro_precision: 0.7872
+macro_recall: 0.7631
+macro_f1: 0.7708
+weighted_f1: 0.7678
+
+Fold mean +/- std:
+accuracy: 0.7689 +/- 0.0052
+balanced_accuracy: 0.7632 +/- 0.0094
+macro_precision: 0.7882 +/- 0.0060
+macro_recall: 0.7632 +/- 0.0094
+macro_f1: 0.7706 +/- 0.0068
+weighted_f1: 0.7678 +/- 0.0053
+training_time_seconds: 5.6797 +/- 0.3094
+
+Outputs:
+C:\Users\ACER\OneDrive\Documents\Optical AI wafer defect detection research\Project\WM-811K-Application\results\phase3_ml\classical_svm

@@ -16,7 +16,15 @@ from wm811k.paths import FEATURE_DATA_PATH, RAW_DATA_PATH, ensure_dir
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--max-per-class", type=int, default=500)
+    parser.add_argument(
+        "--max-per-class",
+        type=int,
+        default=None,
+        help=(
+            "Maximum labeled wafers to extract per class. "
+            "Omit this option to use every labeled wafer in WM-811K."
+        ),
+    )
     parser.add_argument("--min-area", type=int, default=2)
     parser.add_argument("--output", type=Path, default=FEATURE_DATA_PATH)
     return parser.parse_args()
@@ -34,6 +42,10 @@ def main() -> None:
 
     print("Labeled wafers:", len(labeled_dataframe))
     print(labeled_dataframe[LABEL_COLUMN].value_counts())
+    print(
+        "Max wafers per class:",
+        "all labeled wafers" if args.max_per_class is None else args.max_per_class,
+    )
     print("Wafers used for feature extraction:", len(sample_dataframe))
 
     rows = []
