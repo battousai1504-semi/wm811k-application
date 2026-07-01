@@ -58,6 +58,24 @@ LBP/GLCM texture features, and SVM RBF 5-fold CV:
 python scripts/Phase_3_Machine_learning/03_train_classical_svm.py
 ```
 
+Prepare the 64x64 3-channel image dataset for deep learning:
+
+```bash
+python scripts/Phase_3_Machine_learning/04_prepare_dl_image_dataset.py
+```
+
+Create class weights and sample weights for deep-learning imbalance handling:
+
+```bash
+python scripts/Phase_4_Deep_learning/01_handle_class_imbalance.py
+```
+
+Train the ResNet-50 deep-learning baseline:
+
+```bash
+python scripts/Phase_4_Deep_learning/02_train_resnet50_baseline.py
+```
+
 Prepare train, validation, and test splits:
 
 ```bash
@@ -78,5 +96,6 @@ python scripts/Phase_3_Machine_learning/02_train_baselines.py
 
 - Morphology cleaning has been removed from the project pipeline.
 - `data/processed/wafer_features.csv` is the main feature source used by Phase 3.
+- Deep-learning training requires PyTorch and torchvision in addition to the base requirements.
 - Generated data, models, and outputs are ignored by git.
 

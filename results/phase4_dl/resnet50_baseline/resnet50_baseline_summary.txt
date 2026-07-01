@@ -1,0 +1,12 @@
+RESNET-50 BASELINE SUMMARY
+================================
+Device: cuda
+Weights: imagenet
+Epochs completed: 1
+Best epoch: 1
+Best validation macro-F1: 0.4282
+Batch size: 32
+Weighted sampler: True
+Focal gamma: 2.0
+Learning rate: 0.0001
+Weight decay: 0.01
